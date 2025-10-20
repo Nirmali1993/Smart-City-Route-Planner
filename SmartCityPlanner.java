@@ -210,3 +210,102 @@ class Location {
         this.name = name;
     }
 }
+
+
+// ============================================================================
+// MEMBER 1: Graph Data Structure (Adjacency List)
+// ============================================================================
+
+class Graph {
+    private Map<Integer, List<Integer>> adjacencyList;
+
+    public Graph() {
+        this.adjacencyList = new HashMap<>();
+    }
+
+    public boolean addVertex(int locationId) {
+        if (!adjacencyList.containsKey(locationId)) {
+            adjacencyList.put(locationId, new ArrayList<>());
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeVertex(int locationId) {
+        if (adjacencyList.containsKey(locationId)) {
+            adjacencyList.remove(locationId);
+
+            for (List<Integer> edges : adjacencyList.values()) {
+                edges.remove(Integer.valueOf(locationId));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public boolean addEdge(int source, int destination) {
+        if (adjacencyList.containsKey(source) && adjacencyList.containsKey(destination)) {
+            if (!adjacencyList.get(source).contains(destination)) {
+                adjacencyList.get(source).add(destination);
+                adjacencyList.get(destination).add(source);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean removeEdge(int source, int destination) {
+        if (adjacencyList.containsKey(source) && adjacencyList.containsKey(destination)) {
+            adjacencyList.get(source).remove(Integer.valueOf(destination));
+            adjacencyList.get(destination).remove(Integer.valueOf(source));
+            return true;
+        }
+        return false;
+    }
+
+    public List<int[]> getAllConnections() {
+        List<int[]> connections = new ArrayList<>();
+        Set<String> visitedEdges = new HashSet<>();
+
+        for (int source : adjacencyList.keySet()) {
+            for (int destination : adjacencyList.get(source)) {
+                int min = Math.min(source, destination);
+                int max = Math.max(source, destination);
+                String edge = min + "-" + max;
+
+                if (!visitedEdges.contains(edge)) {
+                    connections.add(new int[]{source, destination});
+                    visitedEdges.add(edge);
+                }
+            }
+        }
+        return connections;
+    }
+
+    public List<Integer> bfsTraversal(int startLocation) {
+        if (!adjacencyList.containsKey(startLocation)) {
+            return new ArrayList<>();
+        }
+
+        Set<Integer> visited = new HashSet<>();
+        Queue<Integer> queue = new LinkedList<>();
+        List<Integer> traversalOrder = new ArrayList<>();
+
+        queue.add(startLocation);
+
+        while (!queue.isEmpty()) {
+            int vertex = queue.poll();
+            if (!visited.contains(vertex)) {
+                visited.add(vertex);
+                traversalOrder.add(vertex);
+
+                for (int neighbor : adjacencyList.get(vertex)) {
+                    if (!visited.contains(neighbor)) {
+                        queue.add(neighbor);
+                    }
+                }
+            }
+        }
+        return traversalOrder;
+    }
+}
