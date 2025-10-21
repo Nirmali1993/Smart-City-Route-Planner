@@ -309,3 +309,65 @@ class Graph {
         return traversalOrder;
     }
 }
+// ============================================================================
+// MEMBER 2: Location and Road Management
+// ============================================================================
+
+class LocationManager {
+    private AVLTree avlTree;
+    private Graph graph;
+    private int nextId;
+
+    public LocationManager() {
+        this.avlTree = new AVLTree();
+        this.graph = new Graph();
+        this.nextId = 1;
+    }
+
+    public int addLocation(String name) {
+        int locationId = nextId;
+        avlTree.addLocation(locationId, name);
+        graph.addVertex(locationId);
+        nextId++;
+        return locationId;
+    }
+
+    public boolean removeLocation(int locationId) {
+        if (avlTree.findLocation(locationId) != null) {
+            avlTree.removeLocation(locationId);
+            graph.removeVertex(locationId);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean addRoad(int sourceId, int destId) {
+        String sourceExists = avlTree.findLocation(sourceId);
+        String destExists = avlTree.findLocation(destId);
+
+        if (sourceExists != null && destExists != null) {
+            return graph.addEdge(sourceId, destId);
+        }
+        return false;
+    }
+
+    public boolean removeRoad(int sourceId, int destId) {
+        return graph.removeEdge(sourceId, destId);
+    }
+
+    public List<Location> getAllLocations() {
+        return avlTree.getAllLocations();
+    }
+
+    public List<int[]> getAllConnections() {
+        return graph.getAllConnections();
+    }
+
+    public String getLocationName(int locationId) {
+        return avlTree.findLocation(locationId);
+    }
+
+    public List<Integer> bfsTraversal(int startLocation) {
+        return graph.bfsTraversal(startLocation);
+    }
+}
