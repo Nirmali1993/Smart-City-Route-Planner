@@ -371,3 +371,238 @@ class LocationManager {
         return graph.bfsTraversal(startLocation);
     }
 }
+
+
+// ============================================================================
+// MEMBER 4: Menu-Driven Interface with Input Validation
+// ============================================================================
+
+public class SmartCityPlanner {
+    private LocationManager manager;
+    private Scanner scanner;
+
+    public SmartCityPlanner() {
+        this.manager = new LocationManager();
+        this.scanner = new Scanner(System.in);
+        loadSampleData();
+    }
+
+    private void loadSampleData() {
+        System.out.println("Loading sample data...");
+        String[] locations = {"City Center", "Airport", "Train Station", "Shopping Mall", "University"};
+        
+        for (String loc : locations) {
+            manager.addLocation(loc);
+        }
+
+        manager.addRoad(1, 2);
+        manager.addRoad(1, 3);
+        manager.addRoad(2, 4);
+        manager.addRoad(3, 5);
+        
+        System.out.println("Sample data loaded successfully!\n");
+    }
+
+    private void displayMenu() {
+        System.out.println("\n==================================================");
+        System.out.println("--- Smart City Route Planner ---");
+        System.out.println("==================================================");
+        System.out.println("1. Add a new location");
+        System.out.println("2. Remove a location");
+        System.out.println("3. Add a road between locations");
+        System.out.println("4. Remove a road");
+        System.out.println("5. Display all connections");
+        System.out.println("6. Display all locations (using AVL tree)");
+        System.out.println("7. BFS Traversal (using Queue)");
+        System.out.println("8. Exit");
+        System.out.println("==================================================");
+    }
+
+    private int getValidInteger(String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                return Integer.parseInt(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input! Please enter a number.");
+            }
+        }
+    }
+
+    private String getValidString(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String value = scanner.nextLine().trim();
+            if (!value.isEmpty()) {
+                return value;
+            }
+            System.out.println("Input cannot be empty! Please try again.");
+        }
+    }
+
+    private void addLocationMenu() {
+        System.out.println("\n--- Add New Location ---");
+        String name = getValidString("Enter location name: ");
+        int locationId = manager.addLocation(name);
+        System.out.println("Success: Location '" + name + "' added successfully with ID: " + locationId);
+    }
+
+    private void removeLocationMenu() {
+        System.out.println("\n--- Remove Location ---");
+        displayAllLocations();
+        int locationId = getValidInteger("Enter location ID to remove: ");
+
+        String name = manager.getLocationName(locationId);
+        if (name != null) {
+            manager.removeLocation(locationId);
+            System.out.println("Success: Location '" + name + "' (ID: " + locationId + ") removed successfully");
+        } else {
+            System.out.println("Error: Location not found!");
+        }
+    }
+
+    private void addRoadMenu() {
+        System.out.println("\n--- Add Road ---");
+        displayAllLocations();
+
+        int sourceId = getValidInteger("Enter source location ID: ");
+        int destId = getValidInteger("Enter destination location ID: ");
+
+        if (sourceId == destId) {
+            System.out.println("Error: Source and destination cannot be the same!");
+            return;
+        }
+
+        if (manager.addRoad(sourceId, destId)) {
+            String sourceName = manager.getLocationName(sourceId);
+            String destName = manager.getLocationName(destId);
+            System.out.println("Success: Road added between '" + sourceName + "' and '" + destName + "'");
+        } else {
+            System.out.println("Error: Failed to add road. Check if both locations exist.");
+        }
+    }
+
+    private void removeRoadMenu() {
+        System.out.println("\n--- Remove Road ---");
+        displayAllConnections();
+
+        int sourceId = getValidInteger("Enter source location ID: ");
+        int destId = getValidInteger("Enter destination location ID: ");
+
+        if (manager.removeRoad(sourceId, destId)) {
+            String sourceName = manager.getLocationName(sourceId);
+            String destName = manager.getLocationName(destId);
+            System.out.println("Success: Road removed between '" + sourceName + "' and '" + destName + "'");
+        } else {
+            System.out.println("Error: Road not found!");
+        }
+    }
+
+    private void displayAllConnections() {
+        System.out.println("\n--- All Road Connections ---");
+        List<int[]> connections = manager.getAllConnections();
+
+        if (connections.isEmpty()) {
+            System.out.println("No roads in the system.");
+            return;
+        }
+
+        System.out.println("\nTotal roads: " + connections.size());
+        System.out.println("--------------------------------------------------");
+        for (int[] edge : connections) {
+            String sourceName = manager.getLocationName(edge[0]);
+            String destName = manager.getLocationName(edge[1]);
+            System.out.println(sourceName + " (ID: " + edge[0] + ") <---> " + 
+                             destName + " (ID: " + edge[1] + ")");
+        }
+    }
+
+    private void displayAllLocations() {
+        System.out.println("\n--- All Locations (Sorted by ID - AVL Tree) ---");
+        List<Location> locations = manager.getAllLocations();
+
+        if (locations.isEmpty()) {
+            System.out.println("No locations in the system.");
+            return;
+        }
+
+        System.out.println("\nTotal locations: " + locations.size());
+        System.out.println("--------------------------------------------------");
+        for (Location loc : locations) {
+            System.out.println("ID: " + loc.id + " - " + loc.name);
+        }
+    }
+
+    private void bfsTraversalMenu() {
+        System.out.println("\n--- BFS Traversal (Using Queue) ---");
+        displayAllLocations();
+
+        int startId = getValidInteger("Enter starting location ID: ");
+
+        if (manager.getLocationName(startId) == null) {
+            System.out.println("Error: Location not found!");
+            return;
+        }
+
+        List<Integer> traversal = manager.bfsTraversal(startId);
+
+        System.out.println("\nBFS Traversal from '" + manager.getLocationName(startId) + "':");
+        System.out.println("--------------------------------------------------");
+        int count = 1;
+        for (int locId : traversal) {
+            String name = manager.getLocationName(locId);
+            System.out.println(count + ". " + name + " (ID: " + locId + ")");
+            count++;
+        }
+    }
+
+    public void run() {
+        System.out.println("\n==================================================");
+        System.out.println("Welcome to Smart City Route Planner!");
+        System.out.println("==================================================");
+
+        while (true) {
+            displayMenu();
+            int choice = getValidInteger("Enter your choice: ");
+
+            switch (choice) {
+                case 1:
+                    addLocationMenu();
+                    break;
+                case 2:
+                    removeLocationMenu();
+                    break;
+                case 3:
+                    addRoadMenu();
+                    break;
+                case 4:
+                    removeRoadMenu();
+                    break;
+                case 5:
+                    displayAllConnections();
+                    break;
+                case 6:
+                    displayAllLocations();
+                    break;
+                case 7:
+                    bfsTraversalMenu();
+                    break;
+                case 8:
+                    System.out.println("\n==================================================");
+                    System.out.println("Thank you for using Smart City Route Planner!");
+                    System.out.println("Goodbye!");
+                    System.out.println("==================================================");
+                    scanner.close();
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Error: Invalid choice! Please select 1-8.");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        SmartCityPlanner app = new SmartCityPlanner();
+        app.run();
+    }
+}
